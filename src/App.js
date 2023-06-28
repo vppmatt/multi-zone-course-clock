@@ -67,11 +67,12 @@ function App() {
                 </div>
 
                 <div className="row mt-3">
-                    <div className="col">
                     <EventCreator></EventCreator>
-                    </div><div className="col">
-                        <EventRemover></EventRemover>
                 </div>
+                <div className="row mt-3">
+                    <div className="col">
+                    <EventRemover></EventRemover>
+                    </div>
                 </div>
 
             </div>

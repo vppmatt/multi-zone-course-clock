@@ -1,41 +1,51 @@
-import {useContext, useState} from "react";
-import {countries, EventsContext, getInTimeZone, timeZones} from "../data/lookups";
+import {useContext, useEffect, useState} from "react";
+import {countries, EventsContext, getInTimeZone, timeDiff, timeZones} from "../data/lookups";
+import {useInterval} from "../data/useInterval";
 
 const TimeColumn = () => {
 
-    const [timeZone, setTimeZone] = useState('');
     const [country, setCountry] = useState('');
-    const [updating, setUpdating] = useState(false);
+    const [timeZone, setTimeZone] = useState('');
+    const [currentTime, setCurrentTime] = useState('--:--');
+    const [displayEvents, setDisplayEvents] = useState([]);
 
     const changeCountry = (e) => {
         setCountry(e.target.value);
-        setUpdating(false);
+        setCurrentTime("--:--")
     }
 
     const changeTimeZone = (e) => {
         setTimeZone(e.target.value);
-        setUpdating(e.target.value != "");
+        setCurrentTime("...")
     }
 
     const {events, addEvent} = useContext(EventsContext);
 
+    useInterval(() => {
+        calcCurrentTime();
+    }, 3000);
 
     const calcCurrentTime = () => {
-        if (updating) {
-            setTimeout(() => calcCurrentTime(), 60000);
+        if (timeZone!=="")  {
+            const timeNowLocal = new Date();
+            const utcOffset = timeNowLocal.getTimezoneOffset();
+            const timeNowUTC = new Date();
+            timeNowUTC.setTime(timeNowUTC.getTime() + (utcOffset * 60 * 1000));
+            const offSet = timeZones.find(tz => tz[1] === timeZone)[2];
+            const timeNowZoned = new Date();
+            timeNowZoned.setTime(timeNowUTC.getTime() + (offSet * 60 * 60 * 1000));
+            const hours = timeNowZoned.toLocaleTimeString().substring(0, 2);
+            const mins = timeNowZoned.toLocaleTimeString().substring(3, 5);
+            setCurrentTime(hours + ":" + mins);
+
+            setDisplayEvents(events.map((e, idx) => <p
+                    key={idx}>{e.name} at {getInTimeZone(e.time, 'GMT', timeZone)}
+                    ({timeDiff(getInTimeZone(e.time, 'GMT', timeZone), currentTime)})</p>))
+
         }
-        if (timeZone==="") return "--:--";
-        const timeNowLocal = new Date();
-        const utcOffset =timeNowLocal.getTimezoneOffset();
-        const timeNowUTC = new Date();
-        timeNowUTC.setTime(timeNowUTC.getTime() + (utcOffset*60*1000));
-        const offSet = timeZones.find(tz => tz[1]===timeZone)[2];
-        const timeNowZoned = new Date();
-        timeNowZoned.setTime(timeNowUTC.getTime() + (offSet*60*60*1000));
-        const hours =  timeNowZoned.toLocaleTimeString().substr(0,2);
-        const mins =   timeNowZoned.toLocaleTimeString().substr(3,2);
-        return hours + ":" + mins;
+
     }
+
 
     return <div className="mt-3">
         <p>
@@ -49,9 +59,9 @@ const TimeColumn = () => {
         {timeZones.filter(tz => tz[0]===country).map(tz => <option key={tz[1]} value={tz[1]}>{tz[1]}</option>)}
         </select>
         </p>
-        <p>Current time: {calcCurrentTime()}</p>
+        <p>Current time: {currentTime}</p>
         <p></p>
-        {timeZone !== "" &&  events.map( (e,idx) => <p key={idx}>{e.name} at {getInTimeZone(e.time, 'GMT', timeZone)}</p>)}
+        {displayEvents}
     </div>
 
 }
