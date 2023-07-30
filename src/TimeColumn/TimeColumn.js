@@ -2,12 +2,19 @@ import {useContext, useEffect, useState} from "react";
 import {countries, EventsContext, getInTimeZone, timeDiff, timeZones} from "../data/lookups";
 import {useInterval} from "../data/useInterval";
 
-const TimeColumn = () => {
+const TimeColumn = (props) => {
 
-    const [country, setCountry] = useState('');
-    const [timeZone, setTimeZone] = useState('');
+    const [country, setCountry] = useState("");
+    const [timeZone, setTimeZone] = useState("");
     const [currentTime, setCurrentTime] = useState('--:--');
     const [displayEvents, setDisplayEvents] = useState([]);
+
+
+    useEffect(() => {
+        if (country !== props.country) setCountry(props.country);
+        if (timeZone !== props.timezone) setTimeZone(props.timezone);
+    },[props.country, props.timeZone]);
+
 
     const changeCountry = (e) => {
         setCountry(e.target.value);
@@ -38,9 +45,14 @@ const TimeColumn = () => {
             const mins = timeNowZoned.toLocaleTimeString().substring(3, 5);
             setCurrentTime(hours + ":" + mins);
 
-            setDisplayEvents(events.map((e, idx) => <p
+            setDisplayEvents(events.map((e, idx) => {
+                const pastOrFuture = timeDiff(getInTimeZone(e.time, 'GMT', timeZone), currentTime);
+                let color =   pastOrFuture==='past' ? '#FCC' : '#000'
+                if (pastOrFuture !== 'past' && !pastOrFuture.includes("h")) color = '#0A0';
+                return <p style={{color: color, "font-weight" : pastOrFuture==='past' ? 'normal' : 'bold'}}
                     key={idx}>{e.name} at {getInTimeZone(e.time, 'GMT', timeZone)}
-                    ({timeDiff(getInTimeZone(e.time, 'GMT', timeZone), currentTime)})</p>))
+                    ({pastOrFuture})</p>
+            }))
 
         }
 
@@ -49,7 +61,7 @@ const TimeColumn = () => {
 
     return <div className="mt-3">
         <p>
-            Country: <select onChange={changeCountry} defaultValue="">
+            Country: <select onChange={changeCountry} value={country}>
             <option value="">--select--</option>
             {countries.map(c => <option key={c} value={c} >{c}</option>)}
         </select>

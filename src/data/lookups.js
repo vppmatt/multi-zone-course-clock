@@ -13,7 +13,7 @@ export const timeZones = [
     ["USA", "PST", -8],
     ["USA", "PDT (summer)", -8],
     ["India", "IST", 5.5],
-    ["China", "CST", 8],
+    ["China", "CST (China)", 8],
     ["Singapore", "SGT", 8],
     ["Central EU", "CET", 1],
     ["Central EU", "CEST (summer)", 2]

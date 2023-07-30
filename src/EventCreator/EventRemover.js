@@ -10,8 +10,9 @@ const EventRemover = (props) => {
     }
 
     return <>
-        {events.map ( (e,idx) => <p key={idx}>{e.name} at {e.time} <button className="button btn-primary btn-sm" onClick={ ()=>remove(idx)}>remove</button></p>)}
-
+        {events.map ( (e,idx) =><div className="col-3" key={idx}>{e.name} at {e.time}<br/>
+            <button className="button btn-primary btn-sm" onClick={ ()=>remove(idx)}>remove</button>
+        </div>)}
         </>
 
 }
